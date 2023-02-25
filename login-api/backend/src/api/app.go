@@ -5,15 +5,30 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
 )
 
-func getHello(w http.ResponseWriter, r *http.Request) {
+type AppHandler struct {
+	http.Handler
+}
+
+func (a *AppHandler) getHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "say hello")
 }
 
-func MakeHandler() *mux.Router {
+func MakeHandler() *AppHandler {
 	mux := mux.NewRouter()
-	mux.HandleFunc("/hello", getHello).Methods("GET")
+	n := negroni.New(
+		negroni.NewLogger(),
+		negroni.NewRecovery(),
+	)
+	n.UseHandler(mux)
 
-	return mux
+	a := &AppHandler{
+		Handler: n,
+	}
+
+	mux.HandleFunc("/hello", a.getHello).Methods("GET")
+
+	return a
 }
