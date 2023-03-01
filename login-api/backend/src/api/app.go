@@ -19,9 +19,9 @@ type AppHandler struct {
 	db lib.DBHandler
 }
 
-type User struct {
-	Id       string `json: "id"`
-	Password string `json: "password"`
+func (a *AppHandler) getUsers(w http.ResponseWriter, r *http.Request) {
+	users := a.db.GetUsers()
+	rd.JSON(w, http.StatusOK, users)
 }
 
 func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +29,12 @@ func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	var user User
+	var user lib.User
 	err = json.Unmarshal(vars, &user)
 	if err != nil {
 		panic(err)
 	}
-	ok := a.db.AddNewUser(user.Id, user.Password)
+	ok := a.db.AddNewUser(user.ID, user.Password)
 	rd.JSON(w, http.StatusOK, ok)
 }
 
@@ -54,9 +54,9 @@ func MakeHandler(filepath string) *AppHandler {
 		Handler: n,
 		db:      lib.NewDBHandler(filepath),
 	}
-
-	mux.HandleFunc("/hello", a.getHello).Methods("GET")
+	mux.HandleFunc("/user", a.getUsers).Methods("GET")
 	mux.HandleFunc("/user", a.addNewUserHandler).Methods("POST")
+	mux.HandleFunc("/hello", a.getHello).Methods("GET")
 
 	return a
 }

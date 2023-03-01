@@ -9,6 +9,7 @@ type User struct {
 }
 
 type DBHandler interface {
+	GetUsers() []*User
 	AddNewUser(id string, password string) *User
 	Close()
 }

@@ -11,12 +11,31 @@ type sqliteHandler struct {
 	db *sql.DB
 }
 
-func (s *sqliteHandler) AddNewUser(id string, password string) *User {
-	sql, err := s.db.Prepare("INSERT INTO users (id, password, createdAt) VALUES (?, ?, datetime('now'))")
+func (s *sqliteHandler) GetUsers() []*User {
+	rows, err := s.db.Query("SELECT * FROM users")
 	if err != nil {
 		panic(err)
 	}
-	_, err = sql.Exec(id, password)
+	if err != nil {
+		panic(err)
+	}
+	users := []*User{}
+	for rows.Next() {
+		var user User
+		rows.Scan(&user.ID, &user.Password, &user.CreateAt)
+		users = append(users, &user)
+	}
+	return users
+
+}
+
+// TODO: DB에 유저 안들어가는 오류
+func (s *sqliteHandler) AddNewUser(id string, password string) *User {
+	stmt, err := s.db.Prepare("INSERT INTO users (id, password, createdAt) VALUES (?, ?, datetime('now'))")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(id, password)
 	if err != nil {
 		panic(err)
 	}
@@ -38,16 +57,14 @@ func NewSqliteHandler(filePath string) DBHandler {
 		panic(err)
 	}
 
-	createTableQuery := `
+	stmt, _ := database.Prepare(`
 	CREATE TABLE IF NOT EXISTS users (
-		seq        INTEGER  PRIMARY KEY AUTOINCREMENT,
 		id      TEXT,
 		password TEXT,
 		createdAt DATETIME
-	)`
-	sql, _ := database.Prepare(createTableQuery)
+	)`)
 
-	sql.Exec()
+	stmt.Exec()
 
 	return &sqliteHandler{db: database}
 }
