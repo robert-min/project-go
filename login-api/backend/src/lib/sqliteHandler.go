@@ -12,7 +12,7 @@ type sqliteHandler struct {
 	db *sql.DB
 }
 
-func (s *sqliteHandler) GetUsers() []*User {
+func (s *sqliteHandler) GetAllUsers() []*User {
 	rows, err := s.db.Query("SELECT * FROM users")
 	errorHandler(err)
 	users := []*User{}
@@ -22,7 +22,13 @@ func (s *sqliteHandler) GetUsers() []*User {
 		users = append(users, &user)
 	}
 	return users
+}
 
+func (s *sqliteHandler) GetUser(id string) User {
+	rst := s.db.QueryRow("SELECT * FROM users WHERE id = $1", id)
+	var user User
+	rst.Scan(&user.ID, &user.Password, &user.CreateAt)
+	return user
 }
 
 func (s *sqliteHandler) AddNewUser(id string, password string) *User {

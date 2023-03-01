@@ -9,7 +9,8 @@ type User struct {
 }
 
 type DBHandler interface {
-	GetUsers() []*User
+	GetAllUsers() []*User
+	GetUser(id string) User
 	AddNewUser(id string, password string) *User
 	DeleteUser(id string) string
 	Close()
