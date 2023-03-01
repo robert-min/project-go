@@ -2,6 +2,7 @@ package lib
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -13,12 +14,7 @@ type sqliteHandler struct {
 
 func (s *sqliteHandler) GetUsers() []*User {
 	rows, err := s.db.Query("SELECT * FROM users")
-	if err != nil {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
-	}
+	errorHandler(err)
 	users := []*User{}
 	for rows.Next() {
 		var user User
@@ -32,13 +28,9 @@ func (s *sqliteHandler) GetUsers() []*User {
 // TODO: DB에 유저 안들어가는 오류
 func (s *sqliteHandler) AddNewUser(id string, password string) *User {
 	stmt, err := s.db.Prepare("INSERT INTO users (id, password, createdAt) VALUES (?, ?, datetime('now'))")
-	if err != nil {
-		panic(err)
-	}
+	errorHandler(err)
 	_, err = stmt.Exec(id, password)
-	if err != nil {
-		panic(err)
-	}
+	errorHandler(err)
 	var user User
 	user.ID = id
 	user.Password = password
@@ -53,18 +45,25 @@ func (s *sqliteHandler) Close() {
 
 func NewSqliteHandler(filePath string) DBHandler {
 	database, err := sql.Open("sqlite3", filePath)
-	if err != nil {
-		panic(err)
-	}
+	errorHandler(err)
 
 	stmt, _ := database.Prepare(`
 	CREATE TABLE IF NOT EXISTS users (
-		id      TEXT,
+		id      TEXT PRIMARY KEY,
 		password TEXT,
 		createdAt DATETIME
 	)`)
 
-	stmt.Exec()
+	_, err = stmt.Exec()
+
+	errorHandler(err)
 
 	return &sqliteHandler{db: database}
+}
+
+func errorHandler(err error) {
+	if err != nil {
+		log.Println(err.Error())
+		panic(err)
+	}
 }
