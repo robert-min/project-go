@@ -25,7 +25,6 @@ func (s *sqliteHandler) GetUsers() []*User {
 
 }
 
-// TODO: DB에 유저 안들어가는 오류
 func (s *sqliteHandler) AddNewUser(id string, password string) *User {
 	stmt, err := s.db.Prepare("INSERT INTO users (id, password, createdAt) VALUES (?, ?, datetime('now'))")
 	errorHandler(err)
@@ -37,6 +36,14 @@ func (s *sqliteHandler) AddNewUser(id string, password string) *User {
 	user.CreateAt = time.Now()
 	return &user
 
+}
+
+func (s *sqliteHandler) DeleteUser(id string) string {
+	stmt, err := s.db.Prepare("DELETE FROM users WHERE id = ?")
+	errorHandler(err)
+	_, err = stmt.Exec(id)
+	errorHandler(err)
+	return id
 }
 
 func (s *sqliteHandler) Close() {

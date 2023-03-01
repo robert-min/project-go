@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"project-go/login-api/backend/src/lib"
@@ -38,8 +37,10 @@ func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	rd.JSON(w, http.StatusOK, ok)
 }
 
-func (a *AppHandler) getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "say hello")
+func (a *AppHandler) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := a.db.DeleteUser(vars["id"])
+	rd.JSON(w, http.StatusOK, id)
 }
 
 func MakeHandler(filepath string) *AppHandler {
@@ -56,7 +57,7 @@ func MakeHandler(filepath string) *AppHandler {
 	}
 	mux.HandleFunc("/user", a.getUsers).Methods("GET")
 	mux.HandleFunc("/user", a.addNewUserHandler).Methods("POST")
-	mux.HandleFunc("/hello", a.getHello).Methods("GET")
+	mux.HandleFunc("/user/{id}", a.deleteUserHandler).Methods("DELETE")
 
 	return a
 }
