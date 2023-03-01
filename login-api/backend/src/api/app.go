@@ -1,22 +1,46 @@
 package api
 
 import (
-	"fmt"
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"project-go/login-api/backend/src/lib"
 
 	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
 )
 
+var rd *render.Render = render.New()
+
 type AppHandler struct {
 	http.Handler
+	db lib.DBHandler
 }
 
-func (a *AppHandler) getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "say hello")
+func (a *AppHandler) getAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	users := a.db.GetAllUsers()
+	rd.JSON(w, http.StatusOK, users)
 }
 
-func MakeHandler() *AppHandler {
+func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars, err := ioutil.ReadAll(r.Body)
+	errorHandler(err)
+	var user lib.User
+	err = json.Unmarshal(vars, &user)
+	errorHandler(err)
+	ok := a.db.AddNewUser(user.ID, user.Password)
+	rd.JSON(w, http.StatusOK, ok)
+}
+
+func (a *AppHandler) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := a.db.DeleteUser(vars["id"])
+	rd.JSON(w, http.StatusOK, id)
+}
+
+func MakeHandler(filepath string) *AppHandler {
 	mux := mux.NewRouter()
 	n := negroni.New(
 		negroni.NewLogger(),
@@ -26,9 +50,19 @@ func MakeHandler() *AppHandler {
 
 	a := &AppHandler{
 		Handler: n,
+		db:      lib.NewDBHandler(filepath),
 	}
-
-	mux.HandleFunc("/hello", a.getHello).Methods("GET")
+	mux.HandleFunc("/user", a.getAllUsersHandler).Methods("GET")
+	mux.HandleFunc("/user", a.addNewUserHandler).Methods("POST")
+	mux.HandleFunc("/user/{id}", a.deleteUserHandler).Methods("DELETE")
+	mux.HandleFunc("/login", a.loginHandler).Methods("POST")
 
 	return a
+}
+
+func errorHandler(err error) {
+	if err != nil {
+		log.Println(err.Error())
+		panic(err)
+	}
 }
