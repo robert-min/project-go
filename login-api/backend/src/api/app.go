@@ -23,7 +23,7 @@ type AppHandler struct {
 func (a *AppHandler) getAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	users := a.db.GetAllUsers()
 	rd.JSON(w, http.StatusOK, users)
-	lib.LogInfo("Success : Get all users")
+	lib.LogInfo("200 | GET /user")
 }
 
 func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,12 +34,14 @@ func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
 	errorHandler(err)
 	ok := a.db.AddNewUser(user.ID, user.Password)
 	rd.JSON(w, http.StatusOK, ok)
+	lib.LogInfo("200 | POST /user")
 }
 
 func (a *AppHandler) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := a.db.DeleteUser(vars["id"])
 	rd.JSON(w, http.StatusOK, id)
+	lib.LogInfo("200 | DELETE /user/" + vars["id"])
 }
 
 func MakeHandler(filepath string) *AppHandler {
