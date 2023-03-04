@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -20,10 +19,7 @@ func setConfig() *Config {
 
 	var config Config
 	file, err := os.Open(path + "/login-api/backend/conf/conf.json")
-	if err != nil {
-		fmt.Println("Can't Open", err.Error())
-		panic(err)
-	}
+	errorHandler(err)
 	defer file.Close()
 	jsonParser := json.NewDecoder(file)
 	jsonParser.Decode(&config)
@@ -44,10 +40,7 @@ func creatToken(id string) string {
 
 	key := []byte(config.Secret_key)
 	signedToken, err := token.SignedString(key)
-	if err != nil {
-		fmt.Println("Error signing token ", err.Error())
-		panic(err)
-	}
+	errorHandler(err)
 
 	return signedToken
 }
