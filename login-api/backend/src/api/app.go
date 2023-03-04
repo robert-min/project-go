@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"project-go/login-api/backend/src/lib"
@@ -68,7 +67,7 @@ func MakeHandler(filepath string) *AppHandler {
 
 func errorHandler(err error) {
 	if err != nil {
-		log.Println(err.Error())
+		lib.LogError(err.Error())
 		panic(err)
 	}
 }
