@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"project-go/login-api/backend/src/lib"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,7 @@ type AppHandler struct {
 func (a *AppHandler) getAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	users := a.db.GetAllUsers()
 	rd.JSON(w, http.StatusOK, users)
+	lib.LogInfo("Success : Get all users")
 }
 
 func (a *AppHandler) addNewUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +43,8 @@ func (a *AppHandler) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func MakeHandler(filepath string) *AppHandler {
+	lib.LogInit(os.Stdout, os.Stderr)
+
 	mux := mux.NewRouter()
 	n := negroni.New(
 		negroni.NewLogger(),
